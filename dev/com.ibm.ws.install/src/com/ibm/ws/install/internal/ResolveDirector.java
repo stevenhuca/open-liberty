@@ -460,7 +460,6 @@ class ResolveDirector extends AbstractDirector {
                     installResources = resolver.resolveAsSet(featuresToInstall);
                 } catch (RepositoryResolutionException e) {
                     System.err.println("resolveAsSet 462 features exception:" + e.toString());
-                    resolver = new RepositoryResolver(productDefinitions, product.getFeatureDefinitions().values(), FixAdaptor.getInstalledIFixes(product.getInstallDir()), loginInfo);
                     installResources = resolver.resolve(featuresToInstall);
                 }
             }
@@ -648,7 +647,6 @@ class ResolveDirector extends AbstractDirector {
                 installResources = resolver.resolveAsSet(assetsToInstall);
             } catch (RepositoryResolutionException e) {
                 System.err.println("resolveAsSet 650 features exception:" + e.toString());
-                resolver = new RepositoryResolver(productDefinitions, installedFeatures, installedIFixes, loginInfo);
                 installResources = resolver.resolve(assetsToInstall);
             }
 
