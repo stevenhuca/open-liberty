@@ -10,6 +10,7 @@
  *******************************************************************************/
 package com.ibm.ws.install.internal;
 
+import java.beans.Visibility;
 import java.io.File;
 import java.io.FilenameFilter;
 import java.io.IOException;
@@ -43,6 +44,7 @@ import com.ibm.ws.install.internal.InstallLogUtils.Messages;
 import com.ibm.ws.install.internal.adaptor.FixAdaptor;
 import com.ibm.ws.install.internal.asset.ESAAsset;
 import com.ibm.ws.install.internal.asset.InstallAsset;
+import com.ibm.ws.install.repository.RepositoryException;
 import com.ibm.ws.install.repository.download.RepositoryDownloadUtil;
 import com.ibm.ws.install.repository.internal.RepositoryUtils;
 import com.ibm.ws.kernel.boot.cmdline.Utils;
@@ -52,7 +54,6 @@ import com.ibm.ws.kernel.feature.provisioning.SubsystemContentType;
 import com.ibm.ws.kernel.productinfo.ProductInfo;
 import com.ibm.ws.product.utility.extension.ifix.xml.IFixInfo;
 import com.ibm.ws.repository.common.enums.ResourceType;
-import com.ibm.ws.repository.common.enums.Visibility;
 import com.ibm.ws.repository.connections.DirectoryRepositoryConnection;
 import com.ibm.ws.repository.connections.ProductDefinition;
 import com.ibm.ws.repository.connections.RepositoryConnection;
@@ -64,7 +65,6 @@ import com.ibm.ws.repository.connections.liberty.MainRepository;
 import com.ibm.ws.repository.connections.liberty.ProductInfoProductDefinition;
 import com.ibm.ws.repository.exceptions.RepositoryBackendException;
 import com.ibm.ws.repository.exceptions.RepositoryBackendIOException;
-import com.ibm.ws.repository.exceptions.RepositoryException;
 import com.ibm.ws.repository.exceptions.RepositoryHttpException;
 import com.ibm.ws.repository.exceptions.RepositoryResourceException;
 import com.ibm.ws.repository.resolver.RepositoryResolutionException;
@@ -455,8 +455,14 @@ class ResolveDirector extends AbstractDirector {
                 if (featuresToInstall.isEmpty()) {
                     return new ArrayList<List<RepositoryResource>>(0);
                 }
-                resolver = new RepositoryResolver(productDefinitions, product.getFeatureDefinitions().values(), FixAdaptor.getInstalledIFixes(product.getInstallDir()), loginInfo);
-                installResources = resolver.resolve(featuresToInstall);
+                try {
+                    resolver = new RepositoryResolver(productDefinitions, product.getFeatureDefinitions().values(), FixAdaptor.getInstalledIFixes(product.getInstallDir()), loginInfo);
+                    installResources = resolver.resolveAsSet(featuresToInstall);
+                } catch (RepositoryResolutionException e) {
+                    System.err.println("resolveAsSet 462 features exception:" + e.toString());
+                    resolver = new RepositoryResolver(productDefinitions, product.getFeatureDefinitions().values(), FixAdaptor.getInstalledIFixes(product.getInstallDir()), loginInfo);
+                    installResources = resolver.resolve(featuresToInstall);
+                }
             }
 
         } catch (RepositoryResolutionException e) {
@@ -636,8 +642,16 @@ class ResolveDirector extends AbstractDirector {
             Collection<ProvisioningFeatureDefinition> installedFeatures = download
                                                                           && System.getProperty("INTERNAL_DOWNLOAD_FROM_FOR_BUILD") == null ? Collections.<ProvisioningFeatureDefinition> emptySet() : installedFeatureDefinitions.values();
             Collection<IFixInfo> installedIFixes = download ? Collections.<IFixInfo> emptySet() : FixAdaptor.getInstalledIFixes(product.getInstallDir());
-            resolver = new RepositoryResolver(productDefinitions, installedFeatures, installedIFixes, loginInfo);
-            installResources = resolver.resolve(assetsToInstall);
+
+            try {
+                resolver = new RepositoryResolver(productDefinitions, installedFeatures, installedIFixes, loginInfo);
+                installResources = resolver.resolveAsSet(assetsToInstall);
+            } catch (RepositoryResolutionException e) {
+                System.err.println("resolveAsSet 650 features exception:" + e.toString());
+                resolver = new RepositoryResolver(productDefinitions, installedFeatures, installedIFixes, loginInfo);
+                installResources = resolver.resolve(assetsToInstall);
+            }
+
         } catch (RepositoryResolutionException e) {
 
             throw ExceptionUtils.create(e, assetNamesProcessed, product.getInstallDir(), true, isOpenLiberty);
