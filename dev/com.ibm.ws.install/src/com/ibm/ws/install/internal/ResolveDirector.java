@@ -455,8 +455,12 @@ class ResolveDirector extends AbstractDirector {
                 if (featuresToInstall.isEmpty()) {
                     return new ArrayList<List<RepositoryResource>>(0);
                 }
+                resolver = new RepositoryResolver(productDefinitions, product.getFeatureDefinitions().values(), FixAdaptor.getInstalledIFixes(product.getInstallDir()), loginInfo);
                 try {
-                    resolver = new RepositoryResolver(productDefinitions, product.getFeatureDefinitions().values(), FixAdaptor.getInstalledIFixes(product.getInstallDir()), loginInfo);
+                    System.err.println("featuresToInstall:");
+                    for (String feature : featuresToInstall)
+                        System.err.print(feature + " ");
+                    System.err.println();
                     installResources = resolver.resolveAsSet(featuresToInstall);
                 } catch (RepositoryResolutionException e) {
                     System.err.println("resolveAsSet 462 features exception:" + e.toString());
@@ -641,9 +645,12 @@ class ResolveDirector extends AbstractDirector {
             Collection<ProvisioningFeatureDefinition> installedFeatures = download
                                                                           && System.getProperty("INTERNAL_DOWNLOAD_FROM_FOR_BUILD") == null ? Collections.<ProvisioningFeatureDefinition> emptySet() : installedFeatureDefinitions.values();
             Collection<IFixInfo> installedIFixes = download ? Collections.<IFixInfo> emptySet() : FixAdaptor.getInstalledIFixes(product.getInstallDir());
-
+            resolver = new RepositoryResolver(productDefinitions, installedFeatures, installedIFixes, loginInfo);
             try {
-                resolver = new RepositoryResolver(productDefinitions, installedFeatures, installedIFixes, loginInfo);
+                System.err.println("assetsToInstall:");
+                for (String feature : assetsToInstall)
+                    System.err.print(feature + " ");
+                System.err.println();
                 installResources = resolver.resolveAsSet(assetsToInstall);
             } catch (RepositoryResolutionException e) {
                 System.err.println("resolveAsSet 650 features exception:" + e.toString());
