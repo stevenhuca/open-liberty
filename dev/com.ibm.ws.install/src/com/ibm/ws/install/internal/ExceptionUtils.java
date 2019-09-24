@@ -533,6 +533,7 @@ public class ExceptionUtils {
                     editionName = InstallUtils.getEditionName(e);
                     if (!productMap.containsKey(editionName)) {
                         String product = "- " + productName + (editionName.isEmpty() ? "" : " ") + editionName + " " + appliesToVersion;
+                        product = product.replaceAll("IBM WebSphere Application Server .*Liberty Core", "IBM WebSphere Application Server Web Profile");
                         productMap.put(editionName, product);
                         applicableProducts.append(product);
                         applicableProducts.append(InstallUtils.NEWLINE);
@@ -559,7 +560,9 @@ public class ExceptionUtils {
                     }
                 } else
                     errMsg = Messages.INSTALL_KERNEL_MESSAGES.getLogMessage(installingAsset ? "ERROR_ASSET_DEPENDENT_INVALID_VERSION_EDITION" : "ERROR_DEPENDENT_INVALID_VERSION_EDITION",
-                                                                            new Object[] { feature, dependency, productName, edition, version,
+                                                                            new Object[] { feature, dependency,
+                                                                                           edition.equalsIgnoreCase("Core") ? "IBM WebSphere Application Server" : productName,
+                                                                                           edition.equalsIgnoreCase("Core") ? "Web Profile" : edition, version,
                                                                                            applicableProducts.toString() });
 
             } else if (validInstallRC.getMessageKey().equals("invalidInstallType")) {
